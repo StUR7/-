@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>智能旅游助手 - 全维度旅行规划专家</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9eef5 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* 中央搜索栏 */
+        .search-hero {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .search-wrapper {
+            background: white;
+            border-radius: 80px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 760px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .search-wrapper:focus-within {
+            box-shadow: 0 25px 40px -14px rgba(0, 80, 120, 0.25);
+            transform: scale(1.01);
+        }
+
+        .search-icon {
+            padding-left: 1.5rem;
+            color: #5a6e8a;
+            font-size: 1.3rem;
+        }
+
+        #locationInput {
+            flex: 1;
+            border: none;
+            padding: 1rem 1rem 1rem 0.75rem;
+            font-size: 1.1rem;
+            background: transparent;
+            outline: none;
+            color: #1e2a3e;
+            font-weight: 500;
+        }
+
+        #locationInput::placeholder {
+            color: #9aaebe;
+            font-weight: 400;
+        }
+
+        #searchBtn {
+            background: #1e6f9f;
+            border: none;
+            margin: 0.4rem;
+            padding: 0.7rem 1.8rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #searchBtn:hover {
+            background: #0e5a85;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 组合控制栏 */
+        .compose-bar {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            margin: 0 0 0.5rem;
+        }
+
+        .compose-label {
+            font-weight: 600;
+            color: #2c3e4e;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            background: #eef3fc;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+        }
+
+        .module-toggle {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.3rem 1rem 0.3rem 0.8rem;
+            border-radius: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #2c3e4e;
+        }
+
+        .toggle-item input {
+            width: 1.1rem;
+            height: 1.1rem;
+            cursor: pointer;
+            accent-color: #1e6f9f;
+        }
+
+        /* 模块网格 */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.8rem;
+            margin-top: 0.8rem;
+        }
+
+        /* 通用卡片样式 */
+        .module-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(0px);
+            border-radius: 32px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 35px -14px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: #ffffffdd;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #eef2f8;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e4663;
+            letter-spacing: -0.3px;
+        }
+
+        .emoji-icon {
+            font-size: 1.7rem;
+        }
+
+        .card-content {
+            padding: 1.4rem 1.5rem 1.6rem;
+            flex: 1;
+            color: #2d3e50;
+            line-height: 1.45;
+            font-size: 0.95rem;
+        }
+
+        .card-content ul {
+            padding-left: 1.2rem;
+            margin: 0.5rem 0;
+        }
+
+        .card-content li {
+            margin: 0.5rem 0;
+        }
+
+        .budget-highlight {
+            background: #eef2fa;
+            border-radius: 20px;
+            padding: 0.6rem 1rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .route-item, .hotel-item {
+            margin-bottom: 0.8rem;
+            border-left: 3px solid #6c9ebf;
+            padding-left: 0.8rem;
+        }
+
+        .tag {
+            background: #e3eef9;
+            border-radius: 30px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 0.4rem;
+            color: #1e6f9f;
+        }
+
+        .info-list {
+            margin: 0.5rem 0 0 0;
+            list-style-type: none;
+        }
+
+        .info-list li {
+            margin-bottom: 0.6rem;
+            padding-left: 0.2rem;
+        }
+
+        .empty-module {
+            color: #8ba0b5;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.8rem;
+            color: #6c86a3;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            .compose-bar {
+                border-radius: 28px;
+                padding: 0.8rem 1rem;
+            }
+            .toggle-item {
+                padding: 0.2rem 0.7rem;
+                font-size: 0.8rem;
+            }
+            .card-header h3 {
+                font-size: 1.1rem;
+            }
+            .modules-grid {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 中央搜索栏 -->
+    <div class="search-hero">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="locationInput" placeholder="探索任意目的地，例如：北京、巴黎、东京、纽约..." value="北京">
+            <button id="searchBtn">搜索 · 规划</button>
+        </div>
+    </div>
+
+    <!-- 个性化模块组合栏 (新增更多模块) -->
+    <div class="compose-bar">
+        <span class="compose-label">✨ 随心组合</span>
+        <div class="module-toggle" id="moduleTogglePanel">
+            <label class="toggle-item"><input type="checkbox" value="time" checked> 🕒 时间&天气</label>
+            <label class="toggle-item"><input type="checkbox" value="route" checked> 🗺️ 路线推荐</label>
+            <label class="toggle-item"><input type="checkbox" value="hotel" checked> 🏨 住宿攻略</label>
+            <label class="toggle-item"><input type="checkbox" value="budget" checked> 💰 预算预估</label>
+            <label class="toggle-item"><input type="checkbox" value="transport" checked> 🚗 交通方式</label>
+            <label class="toggle-item"><input type="checkbox" value="basicInfo" checked> 🌍 基础信息</label>
+            <label class="toggle-item"><input type="checkbox" value="documents" checked> 📄 证件手续</label>
+            <label class="toggle-item"><input type="checkbox" value="sightseeing" checked> 🎯 游玩攻略</label>
+            <label class="toggle-item"><input type="checkbox" value="cuisine" checked> 🍜 特色美食</label>
+            <label class="toggle-item"><input type="checkbox" value="payment" checked> 💳 钱与支付</label>
+            <label class="toggle-item"><input type="checkbox" value="safety" checked> 🛡️ 安全健康</label>
+            <label class="toggle-item"><input type="checkbox" value="packing" checked> 🎒 行李必备</label>
+        </div>
+        <span style="font-size:0.75rem; color:#6f8eae;">✔️ 勾选模块自由组合 | 搜索即更新全维度信息</span>
+    </div>
+
+    <!-- 模块展示区域 -->
+    <div class="modules-grid" id="modulesContainer">
+        <!-- 原有模块 -->
+        <div class="module-card" data-module="time" id="moduleTime"><div class="card-header"><span class="emoji-icon">🕒</span><h3>最佳时间 & 天气</h3></div><div class="card-content" id="timeContent">加载中...</div></div>
+        <div class="module-card" data-module="route" id="moduleRoute"><div class="card-header"><span class="emoji-icon">🗺️</span><h3>经典路线推荐</h3></div><div class="card-content" id="routeContent">加载中...</div></div>
+        <div class="module-card" data-module="hotel" id="moduleHotel"><div class="card-header"><span class="emoji-icon">🏨</span><h3>精选住宿</h3></div><div class="card-content" id="hotelContent">加载中...</div></div>
+        <div class="module-card" data-module="budget" id="moduleBudget"><div class="card-header"><span class="emoji-icon">💰</span><h3>预算预估</h3></div><div class="card-content" id="budgetContent">加载中...</div></div>
+        <div class="module-card" data-module="transport" id="moduleTransport"><div class="card-header"><span class="emoji-icon">🚗</span><h3>交通方式</h3></div><div class="card-content" id="transportContent">加载中...</div></div>
+
+        <!-- 新增全维度模块 -->
+        <div class="module-card" data-module="basicInfo" id="moduleBasicInfo"><div class="card-header"><span class="emoji-icon">🌍</span><h3>基础信息</h3></div><div class="card-content" id="basicInfoContent">加载中...</div></div>
+        <div class="module-card" data-module="documents" id="moduleDocuments"><div class="card-header"><span class="emoji-icon">📄</span><h3>证件与手续</h3></div><div class="card-content" id="documentsContent">加载中...</div></div>
+        <div class="module-card" data-module="sightseeing" id="moduleSightseeing"><div class="card-header"><span class="emoji-icon">🎯</span><h3>游玩攻略</h3></div><div class="card-content" id="sightseeingContent">加载中...</div></div>
+        <div class="module-card" data-module="cuisine" id="moduleCuisine"><div class="card-header"><span class="emoji-icon">🍜</span><h3>特色美食</h3></div><div class="card-content" id="cuisineContent">加载中...</div></div>
+        <div class="module-card" data-module="payment" id="modulePayment"><div class="card-header"><span class="emoji-icon">💳</span><h3>钱与支付</h3></div><div class="card-content" id="paymentContent">加载中...</div></div>
+        <div class="module-card" data-module="safety" id="moduleSafety"><div class="card-header"><span class="emoji-icon">🛡️</span><h3>安全与健康</h3></div><div class="card-content" id="safetyContent">加载中...</div></div>
+        <div class="module-card" data-module="packing" id="modulePacking"><div class="card-header"><span class="emoji-icon">🎒</span><h3>行李必备</h3></div><div class="card-content" id="packingContent">加载中...</div></div>
+    </div>
+    <footer>💡 提示：勾选/取消模块即可自由组合界面，输入城市后全维度旅行信息同步更新，助你出行无忧。</footer>
+</div>
+
+<script>
+    // ======================= 全维度旅行数据库（覆盖吃住行玩钱安全证件等） =======================
+    const travelDatabase = {
+        "北京": {
+            time: "🌿 春秋季最佳 (4-6月, 9-10月) • 建议游玩3-5天 • 秋季银杏红枫绝美，冬季干冷需羽绒服",
+            route: "🏯 经典路线：<br>1. 故宫→景山公园→什刹海<br>2. 颐和园→圆明园→清华/北大<br>3. 八达岭长城→明十三陵<br>4. 天坛→前门大街→王府井",
+            hotel: "🏨 高品质推荐：<br>• 王府半岛酒店 (奢华中心) ¥1800+/晚<br>• 北京四季酒店 (亮马桥) ¥1500+/晚<br>• 胡同里·古城老院 (特色民宿) ¥900+/晚",
+            budget: "💵 人均预算参考：<br>经济型：¥300-500/天 舒适型：¥800-1500/天 豪华型：¥2000+/天<br>门票+餐饮+住宿综合预估：3天约¥2000~6000",
+            transport: "🚇 地铁全网覆盖(易通行APP) • 公交刷码 • 出租车起步¥13 • 推荐地铁+共享单车 • 去长城乘S2线火车",
+            basicInfo: "🌡️ 温带季风气候，春秋干爽，夏热多雨，冬寒冷。🕰️ 北京时间UTC+8，无时差。🗣️ 普通话通用。🔌 电压220V，A/C型插座（两脚扁/圆插）。🎎 礼仪：参观古迹保持安静，寺庙不踩门槛，尊重胡同居民生活。",
+            documents: "📇 身份证必备，学生证、老年证享门票优惠。建议证件拍照备份存手机+云端。外宾需护照。颐和园/故宫等需提前预约。",
+            sightseeing: "🏛️ 必去：故宫(8:30-17:00 周一闭馆, 需提前7天预约，旺季¥60)、长城(八达岭¥40)、天坛联票¥34、颐和园¥30。⏰ 热门需预约，建议早晨错峰。路线优化：东线古迹+西线园林。",
+            cuisine: "🥢 必吃：北京烤鸭(全聚德/四季民福)、炸酱面、豆汁焦圈、涮羊肉(东来顺)、卤煮火烧。小吃推荐牛街。避雷：王府井小吃街价高。口味偏咸酱香。",
+            payment: "💴 人民币CNY，微信/支付宝普及率99%，现金备用少量即可。Visa/Mastercard大型商场可用，街边小店建议移动支付。",
+            safety: "☎️ 紧急电话110/120/119。治安良好，景区防小偷，随身财物留意。春季花粉过敏备药，冬季防流感。常用药：感冒药、肠胃药、创可贴。防晒防风。大使馆信息：非出国无需，外国游客驻华使领馆位于朝阳区。",
+            packing: "🧳 充电器+充电宝，转换插头(国标两孔)。口罩纸巾湿巾必备。雨伞/帽子/舒适运动鞋。故宫长城需步行，带水杯。冬季厚羽绒，春秋薄外套。"
+        },
+        "上海": {
+            time: "☁️ 春秋清爽 (3-5月,9-11月) • 建议3-4天 • 夏季梅雨冬季湿冷",
+            route: "🌆 摩登路线：<br>1. 外滩→南京路→豫园<br>2. 迪士尼乐园全日游<br>3. 陆家嘴三件套→浦东美术馆→东岸滨江",
+            hotel: "🏨 热门区域酒店：<br>• 上海和平饭店 (外滩传奇) ¥2200+/晚<br>• 上海柏悦酒店 (云端景观) ¥2000+/晚<br>• 迪士尼附近民宿 ¥500-1200/晚",
+            budget: "💰 人均花费参考：<br>日常餐饮¥80-200/顿，门票迪士尼¥500+，总预算舒适3天约¥2500-5500",
+            transport: "🚇 地铁发达 (Metro大都会) • 磁悬浮列车 • 轮渡游黄浦江 • 出租车/网约车方便",
+            basicInfo: "🌦️ 亚热带季风，梅雨季6-7月，冬湿冷。UTC+8，普通话/上海话。电压220V，插座A/C型。礼仪：排队守秩序，公共场所不喧哗。",
+            documents: "📇 身份证/护照，参观东方明珠/迪士尼需实名购票，优惠证件可用。证件电子备份。",
+            sightseeing: "🏰 必去：外滩(全天)、东方明珠(9-21点¥199起)、迪士尼(¥475起 需早鸟预约)、豫园(¥40)。热门需提前1-7天预约，避开周末人流。",
+            cuisine: "🍜 本帮菜：生煎(小杨生煎)、南翔小笼包、蟹粉面、红烧肉、鲜肉月饼。推荐光明邨、老吉士。口味偏甜油，清淡可点白斩鸡。",
+            payment: "💳 支付宝微信全覆盖，外币兑换点较多，支持Visa/Master。建议备少量现金坐轮渡/老字号。",
+            safety: "🚔 治安优秀，注意迪士尼排队纠纷。医院资源好，常用肠胃药、晕车药。夏天防蚊液，黄浦江边注意防晒。紧急电话110。",
+            packing: "🎒 雨伞必带(梅雨季)、舒适平底鞋、转换插头、充电宝、薄外套(室内空调冷)。"
+        },
+        "杭州": {
+            time: "🌸 春季(3-4月)赏樱，秋季(9-11月)桂花 • 建议2-3天",
+            route: "🏞️ 诗意路线：<br>1. 西湖环线→断桥→苏堤→雷峰塔<br>2. 灵隐寺→法喜寺→龙井村<br>3. 西溪湿地→小河直街",
+            hotel: "🏨 西湖周边住宿：<br>• 西湖国宾馆 ¥1500+/晚<br>• 法云安缦 ¥5000+ (奢华隐世)<br>• 青芝坞文艺民宿 ¥400-800",
+            budget: "🎋 预算预估：人均¥400-800/天，经典游2天约¥1200-2800 (含门票交通)",
+            transport: "🚌 环湖电瓶车、公交、共享单车极其友好 • 地铁覆盖 • 水上巴士体验",
+            basicInfo: "🍃 亚热带湿润气候，梅雨较多。UTC+8，语言普通话。电压220V，插座两脚扁/圆。风俗：寺庙礼佛心诚，龙井茶礼轻叩指。",
+            documents: "📇 身份证必备，学生证门票5折。灵隐寺需现场购香花券。",
+            sightseeing: "⛩️ 西湖免票，雷峰塔¥40，灵隐寺¥75(含飞来峰)，西溪湿地¥80。多数景点6:00-18:00，苏堤骑行最美。建议提前预约船票。",
+            cuisine: "🍵 西湖醋鱼、龙井虾仁、东坡肉、定胜糕、葱包烩。推荐楼外楼、外婆家。口味清淡鲜甜。",
+            payment: "💴 移动支付100%覆盖，支付宝/微信。部分寺庙现金可投功德箱。",
+            safety: "🛡️ 治安极佳，夏季蚊虫多带驱蚊液，爬山注意防滑。医院便利，常备肠胃药。",
+            packing: "☂️ 雨伞、防蚊液、舒适的登山鞋、充电宝、防晒帽。"
+        },
+        "成都": {
+            time: "🐼 春秋温和 (3-6月, 9-11月) • 建议3-4天 • 夏季稍热",
+            route: "🥘 休闲路线：<br>1. 大熊猫基地→文殊院→宽窄巷子<br>2. 武侯祠→锦里→人民公园<br>3. 青城山+都江堰一日游",
+            hotel: "🏨 特色酒店：<br>• 成都博舍 ¥1800+/晚<br>• 群光君悦 ¥1200+/晚<br>• 春熙路附近公寓 ¥400-800",
+            budget: "🍜 美食之都预算：人均¥300-600/天 (火锅串串超划算)，3天约¥1200-3500",
+            transport: "🚇 地铁覆盖核心景区 • 景区直通车 • 出租车性价比高 • 共享单车",
+            basicInfo: "☁️ 亚热带湿润气候，多云雾。UTC+8，四川话/普通话。电压220V，插座两孔。茶文化浓厚，慢生活，麻将休闲。",
+            documents: "📇 身份证，熊猫基地实名，学生证半价。",
+            sightseeing: "🐼 大熊猫基地(¥55 上午看猫最佳)、武侯祠(¥50)、都江堰(¥80)、青城山(¥80)。开放时间大多8:00-17:30，提前网络购票。",
+            cuisine: "🌶️ 火锅、串串、钵钵鸡、担担面、甜水面、兔头。推荐小龙坎、明婷饭店。怕辣可选清汤/蛋烘糕。",
+            payment: "💳 微信支付宝全城普及，菜市场也能扫码。",
+            safety: "🛡️ 治安良好，饮食注意肠胃适应辣度，备黄连素。夏季防晒，蚊虫不多。紧急电话110。",
+            packing: "🎒 薄外套(防空调)、舒适鞋子、肠胃药、充电宝、雨伞。"
+        },
+        "巴黎": {
+            time: "🗼 四季皆宜，春夏最浪漫(4-10月) • 建议4-6天",
+            route: "🎨 艺术路线：<br>1. 卢浮宫→杜乐丽花园→协和广场→香榭丽舍→凯旋门<br>2. 埃菲尔铁塔→战神广场→塞纳河游船<br>3. 蒙马特高地→圣心大教堂→爱墙",
+            hotel: "🏨 左岸/右岸精选：<br>• 香格里拉酒店 (铁塔景观) €900+/晚<br>• 巴黎洲际大酒店 €500+/晚<br>• 玛黑区设计酒店 €180-350/晚",
+            budget: "💶 预算参考 (欧元)：经济€120/天，舒适€250/天，奢华€600+/天；巴黎通票可节省门票",
+            transport: "🚇 地铁RER网络发达 • 步行探索左岸 • Velib'共享单车 • 塞纳河游船",
+            basicInfo: "☀️ 温带海洋性，冬雨夏凉。时差UTC+1 (冬)/+2(夏)，比北京晚6-7小时。法语为主，英语游客区可通。插座Type E (两圆孔)，需转换插头。礼仪：用餐轻声，购物说Bonjour。",
+            documents: "📘 护照+申根签证(必备)，建议复印件+云端备份。学生证欧盟优惠。",
+            sightseeing: "🗿 卢浮宫(€17 周二闭馆，需预约)，埃菲尔铁塔(€11.3-28.4)，凡尔赛宫(€20)。多数景点周一/二闭馆，务必提前官网预约。",
+            cuisine: "🥐 可颂、法棍、马卡龙、油封鸭、蜗牛、牛排薯条。推荐拉丁区小馆，避雷香街高价餐厅。",
+            payment: "💶 欧元现金+信用卡(Visa/Mastercard普遍)，部分小店只收现金或低于€10刷卡限制。Apple Pay普及。",
+            safety: "⚠️ 注意地铁和景区小偷，护照钱财分开放。紧急电话112(欧盟)，中国驻法领事馆+33-153758840。常备感冒药、创可贴。",
+            packing: "🔌 欧标转换插头、充电宝、贴身防盗包、舒适的步行鞋、折叠伞、轻薄外套。"
+        },
+        "东京": {
+            time: "🌸 春季樱花(3-4月) & 秋季红叶(10-11月) • 建议4-5天",
+            route: "🗼 霓虹路线：<br>1. 浅草寺→晴空塔→秋叶原<br>2. 涩谷→原宿→表参道→新宿<br>3. 迪士尼乐园/海洋 • 台场",
+            hotel: "🏨 新宿/涩谷住宿：<br>• 东京安缦 ¥8000+/晚<br>• 京王广场酒店 ¥1500+/晚<br>• 胶囊旅馆 ¥300-600/晚 (独特体验)",
+            budget: "💴 人均预算：经济型¥6000-8000日元/天，舒适型¥15000-25000/天，交通可用Tokyo Subway Ticket",
+            transport: "🚃 JR山手线 + 地铁全线 • 西瓜卡通用 • 新干线去周边 • 极其准点",
+            basicInfo: "🍁 温带季风，四季分明。时差UTC+9 (比北京快1小时)。日语为主，简单英语可沟通。电压100V，两脚扁插(A型)。礼仪：公共场合安静，垃圾分类严格，泡温泉先洗净。",
+            documents: "📘 护照+有效签证(单次/三年)，入境需填Visit Japan Web。学生证部分景点优惠。",
+            sightseeing: "⛩️ 浅草寺免费，东京塔¥1200，迪士尼¥9400，涩谷SKY ¥2000。预约热门：吉卜力美术馆提前2个月抽选。开放时间多9-21点。",
+            cuisine: "🍣 寿司、拉面、天妇罗、和牛、抹茶甜品、章鱼烧。推荐筑地市场、银座篝。口味清淡鲜美，居酒屋体验必去。",
+            payment: "💴 日元现金很重要(小店/神社)，Suica可充值电子支付，信用卡通用，支付宝/微信部分商场可用。",
+            safety: "🛡️ 全球治安顶级，但注意痴汉，女性夜间推荐女性车厢。紧急报警110，救护119。常备口罩(花粉症)，胃肠药。",
+            packing: "🔌 两脚扁插转换头(美标)、充电宝、舒适鞋、零钱包(装硬币)、便携纸巾(公厕无纸巾)。"
+        },
+        "纽约": {
+            time: "🍎 春秋最佳 (4-6月, 9-11月) • 建议4天",
+            route: "🗽 大苹果路线：<br>1. 自由女神→华尔街→布鲁克林大桥<br>2. 中央公园→大都会博物馆→时代广场<br>3. 高线公园→切尔西市场→帝国大厦",
+            hotel: "🏨 曼哈顿中城/下城：<br>• 纽约瑞吉酒店 $800+/晚<br>• 时代广场EDITION $500+/晚<br>• 长岛市民宿 $150-300/晚",
+            budget: "💵 预算参考 (美金)：经济$150/天，舒适$300/天，百老汇/博物馆通票划算",
+            transport: "🚇 地铁24小时运行 • 黄色出租车 • 渡轮前往史坦顿岛 • 城市巴士",
+            basicInfo: "🍂 温带大陆性，夏热冬冷。时差UTC-5 (冬)/-4(夏) 比北京晚13/12小时。英语，电压120V，美标两扁插(A/B型)。小费文化(15-20%)。",
+            documents: "📘 护照+EVUS(有效B1/B2签证)，驾照可用租车。",
+            sightseeing: "🗽 自由女神(往返船票$24.5)，大都会博物馆(建议$30)，帝国大厦$48。多数博物馆周一闭馆，CityPASS省钱。",
+            cuisine: "🍔 汉堡(Shake Shack)、牛排、百吉饼、芝士蛋糕、热狗。推荐Chelsea Market，避开时代广场连锁店。",
+            payment: "💵 美元现金+信用卡必备，移动支付Apple Pay常见。部分中餐厅可微信。小费建议现金。",
+            safety: "🚔 夜晚避免偏僻街区，财物防盗。紧急911。大使馆+1-212-244-9392。备常用过敏药。",
+            packing: "🧥 舒适运动鞋、转换插头、防盗背包、墨镜、防晒霜、折叠伞。"
+        },
+        "default": {
+            time: "🌟 建议春季或秋季出行，气候宜人，出行前查看当地天气",
+            route: "🚩 推荐规划：市中心地标→历史文化街区→特色美食街→自然公园，可根据兴趣调整",
+            hotel: "🏠 搜索附近高评分酒店或民宿，建议选择交通便利区域，提前比价",
+            budget: "💡 每日预算范围建议：餐饮+住宿+门票+交通 ≈ 300-800元/天 (依城市浮动)",
+            transport: "🚌 当地公交/地铁/网约车组合出行，使用地图APP查询实时路线",
+            basicInfo: "🌍 出行前查阅当地天气、时差、电压及风俗禁忌，尊重文化礼仪，安全第一。",
+            documents: "📇 携带身份证/护照，学生证等优惠证件，电子备份并存云端。",
+            sightseeing: "🎟️ 热门景点提前官网预约，留意开放时间和闭馆日，规划不走回头路。",
+            cuisine: "🍜 品尝地道小吃，参考本地人推荐，注意饮食卫生，过敏源提前了解。",
+            payment: "💰 备适量现金+国际信用卡，确认移动支付普及度，汇率换算用APP。",
+            safety: "☎️ 记下当地紧急电话及中国使领馆联系方式，备常用药品，注意防晒保暖。",
+            packing: "🎒 充电宝、转换插头、舒适鞋、雨具、口罩、纸巾，轻装简行。"
+        }
+    };
+
+    function getCityData(cityName) {
+        if (!cityName || cityName.trim() === "") return travelDatabase["default"];
+        const trimmed = cityName.trim().toLowerCase();
+        for (let key in travelDatabase) {
+            if (key.toLowerCase() === trimmed) return travelDatabase[key];
+        }
+        for (let key of Object.keys(travelDatabase)) {
+            if (key !== "default" && (trimmed.includes(key.toLowerCase()) || key.toLowerCase().includes(trimmed))) {
+                return travelDatabase[key];
+            }
+        }
+        return travelDatabase["default"];
+    }
+
+    let currentCity = "北京";
+    function formatGenericContent(text) { return text ? `<div>${text.replace(/\n/g, '<br>')}</div>` : '<div class="empty-module">暂无信息</div>'; }
+    function formatHotelContent(text) { if (!text) return '<div class="empty-module">暂无住宿推荐</div>'; let html=''; text.split('\n').forEach(line=>{ if(line.trim().startsWith('•')) html+=`<div class="hotel-item">${line.trim()}</div>`; else if(line.trim()) html+=`<div>${line}</div>`; }); return html||`<div>${text}</div>`; }
+    function formatBudgetContent(text) { if(!text) return '<div class="empty-module">暂无预算</div>'; let highlighted=text.replace(/(¥\d+|\d+元|USD|欧元|€\d+|\$\d+)/g,'<strong class="budget-highlight" style="background:#e9f0f5;">$1</strong>').replace(/\n/g,'<br>'); return `<div>${highlighted}</div>`; }
+    function formatRouteContent(text) { if(!text) return '<div class="empty-module">暂无路线</div>'; let formatted=text.replace(/\n/g,'<br>').replace(/(\d+\.)/g,'<span class="tag">$1</span>'); return `<div>${formatted}</div>`; }
+
+    function updateAllModules(city) {
+        const data = getCityData(city);
+        document.getElementById("timeContent").innerHTML = formatGenericContent(data.time);
+        document.getElementById("routeContent").innerHTML = formatRouteContent(data.route);
+        document.getElementById("hotelContent").innerHTML = formatHotelContent(data.hotel);
+        document.getElementById("budgetContent").innerHTML = formatBudgetContent(data.budget);
+        document.getElementById("transportContent").innerHTML = formatGenericContent(data.transport);
+        document.getElementById("basicInfoContent").innerHTML = formatGenericContent(data.basicInfo);
+        document.getElementById("documentsContent").innerHTML = formatGenericContent(data.documents);
+        document.getElementById("sightseeingContent").innerHTML = formatGenericContent(data.sightseeing);
+        document.getElementById("cuisineContent").innerHTML = formatGenericContent(data.cuisine);
+        document.getElementById("paymentContent").innerHTML = formatGenericContent(data.payment);
+        document.getElementById("safetyContent").innerHTML = formatGenericContent(data.safety);
+        document.getElementById("packingContent").innerHTML = formatGenericContent(data.packing);
+    }
+
+    function initModuleToggle() {
+        const checkboxes = document.querySelectorAll('#moduleTogglePanel input');
+        const modulesMap = {
+            'time': document.getElementById('moduleTime'), 'route': document.getElementById('moduleRoute'),
+            'hotel': document.getElementById('moduleHotel'), 'budget': document.getElementById('moduleBudget'),
+            'transport': document.getElementById('moduleTransport'), 'basicInfo': document.getElementById('moduleBasicInfo'),
+            'documents': document.getElementById('moduleDocuments'), 'sightseeing': document.getElementById('moduleSightseeing'),
+            'cuisine': document.getElementById('moduleCuisine'), 'payment': document.getElementById('modulePayment'),
+            'safety': document.getElementById('moduleSafety'), 'packing': document.getElementById('modulePacking')
+        };
+        function applyVisibility() { checkboxes.forEach(cb => { let mod = modulesMap[cb.value]; if(mod) mod.style.display = cb.checked ? 'flex' : 'none'; }); }
+        checkboxes.forEach(cb => cb.addEventListener('change', applyVisibility));
+        applyVisibility();
+    }
+
+    function setupSearch() {
+        const searchBtn = document.getElementById('searchBtn');
+        const inputEl = document.getElementById('locationInput');
+        function performSearch() {
+            let query = inputEl.value.trim();
+            if (query === "") { query = "北京"; inputEl.value = "北京"; }
+            currentCity = query;
+            updateAllModules(currentCity);
+            const btn = document.getElementById('searchBtn');
+            btn.style.transform = 'scale(0.96)';
+            setTimeout(() => { btn.style.transform = ''; }, 150);
+        }
+        searchBtn.addEventListener('click', performSearch);
+        inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+    }
+
+    function init() {
+        setupSearch();
+        initModuleToggle();
+        updateAllModules("北京");
+        const inputBox = document.getElementById('locationInput');
+        if(inputBox) inputBox.addEventListener('focus', () => { inputBox.parentElement.parentElement.style.boxShadow = '0 25px 40px -12px rgba(0,100,150,0.2)'; });
+    }
+    init();
+</script>
+</body>
+</html>
